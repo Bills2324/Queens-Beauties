@@ -1178,12 +1178,12 @@ function renderAcct(){
      '<p class="note">Forgot your PIN? Message us on WhatsApp from your registered number and we\'ll reset it.</p>';
    }
   } else {
-   var b=bal(), first=esc(ACCT.name.split(' ')[0]);
+  var b=bal(), first=esc(ACCT.name.split(' ')[0]);
    var redeemable=Math.floor(b.points/REDEEM_AT)*REDEEM_KES;
    var toNext=REDEEM_AT-(b.points%REDEEM_AT);
    var goldPct=Math.min(100,Math.round(b.paidTotal/GOLD_FROM*100));
    h='<div class="eyebrow">Queen\'s Club</div><h2>'+(aJoined?'Karibu to Queen\'s Club, ':'Hello, ')+first+'! 💖</h2>'+
-    '<p class="sub" style="margin-bottom:0">'+esc(showPhone(ACCT.phone))+' · '+esc(b.tier)+'</p>';
+    '<p class="sub" style="margin-bottom:0">'+esc(ACCT.email || showPhone(ACCT.phone))+' · '+esc(b.tier)+'</p>';
    if(!SHEET_URL)h+='<div class="warn">Your account and points are saved on this phone. The shop confirms your official balance on WhatsApp.</div>';
    h+='<div class="ptcard"><div class="n">'+b.points+'</div>points'+(redeemable?'<small>Worth KES '+redeemable+' off your next order</small>':'<small>Earn '+toNext+' more points to unlock KES '+REDEEM_KES+' off</small>')+(b.pending?'<small>+ '+b.pending+' points pending until we confirm your payment</small>':'')+'</div>';
    h+='<div><b>'+(b.tier==='Gold Queen'?'👑 You\'re a Gold Queen!':'Progress to Gold Queen')+'</b><div class="bar"><i style="width:'+goldPct+'%"></i></div><small style="color:var(--muted)">'+(b.tier==='Gold Queen'?'Enjoy early access, free local delivery and first pick of new arrivals.':fmt(Math.max(0,GOLD_FROM-b.paidTotal))+' more to reach Gold Queen')+'</small></div>';
@@ -1663,17 +1663,16 @@ function handleGoogleSignIn(response) {
   api('googleLogin', { email: email, name: name }).then(function(r) {
     aBusy(false);
     if (r.ok) {
-      ACCT = { name: r.name || name, phone: email, joined: Date.now(), bal: r.bal };
+      ACCT = { name: r.name || name, phone: email, email: email, joined: Date.now(), bal: r.bal };
       saveAcct(); setIn(true); aView = 'home'; renderAcct(); updAcctBtn();
     } else {
-      aMsgSet(r.msg || 'Google Sign-In failed.');
+      aMsgSet(r.msg || 'Google Sign-In flexible failure.');
     }
   }).catch(function() {
     aBusy(false);
     aMsgSet('Connection error. Please try again.');
   });
 }
-
 function initGoogleButton() {
   if (window.google && window.google.accounts) {
     google.accounts.id.initialize({
